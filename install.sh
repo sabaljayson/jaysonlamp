@@ -10,9 +10,9 @@ iptables -P INPUT ACCEPT >> /dev/null 2>&1
 
 if [[ $2 == "--SERVERLY=1" ]]; then
     # Clean the serverly file if present
-    rm -rf /tmp/jaysabal.proc
+    rm -rf /tmp/jsLAMPinstaller.proc
     SERVERLY=true
-    SERVERLY_LOG=/tmp/jaysabal.proc
+    SERVERLY_LOG=/tmp/jsLAMPinstaller.proc
 fi
 
 function SERECHO {
@@ -58,11 +58,11 @@ function LAMP_CHECK {
 
 SOFTACULOUS_FILREPO=http://www.softaculous.com
 VIRTUALIZOR_FILEREPO=http://files.virtualizor.com
-FILEREPO=http://files.jaysabal.com
-LOG=/root/jaysabal-install.log
-SOFT_CONTACT_FILE=/var/jaysabal/users/soft/contact
+FILEREPO=http://files.webuzo.com
+LOG=/root/jsLAMPinstaller-install.log
+SOFT_CONTACT_FILE=/var/jsLAMPinstaller/users/soft/contact
 EMPS=/usr/local/emps
-CONF=/usr/local/jaysabal/conf/jaysabal
+CONF=/usr/local/jsLAMPinstaller/conf/jsLAMPinstaller
 
 
 #----------------------------------
@@ -73,17 +73,17 @@ if [ `uname -i` == x86_64 ]; then
 else
 	ARCH=32
 	echo "--------------------------------------------------------"
-	echo " jaysabal is not supported on 32 bit systems"
+	echo " jsLAMPinstaller is not supported on 32 bit systems"
 	echo "--------------------------------------------------------"
 	echo "Exiting installer"
-	SERECHO "-1jaysabal is not supported on 32 bit systems"
+	SERECHO "-1jsLAMPinstaller is not supported on 32 bit systems"
 	exit 1;
 fi
 
 echo "--------------------------------------------------------"
-echo " Welcome to LAMP INSTALLER BY JAYSON SABAL"
+echo " Welcome to JSLAMPINSTALLER BY JAYSON SABAL"
 echo "--------------------------------------------------------"
-echo " Installation Logs : tail -f /root/jaysabal-install.log"
+echo " Installation Logs : tail -f /root/jsLAMPinstaller-install.log"
 echo "--------------------------------------------------------"
 echo " "
 
@@ -107,8 +107,8 @@ fi
 theos="$(echo $REL | egrep -i '(cent|Scie|Red|Ubuntu)' )"
 
 if [ "$?" -ne "0" ]; then
-	echo "jaysabal can be installed only on CentOS, centos, Ubuntu OR Scientific Linux"
-	SERECHO "-1jaysabal can be installed only on CentOS, centos, Ubuntu OR Scientific Linux"
+	echo "jsLAMPinstaller can be installed only on CentOS, centos, Ubuntu OR Scientific Linux"
+	SERECHO "-1jsLAMPinstaller can be installed only on CentOS, centos, Ubuntu OR Scientific Linux"
 	echo "Exiting installer"
 	exit 1;
 fi
@@ -118,16 +118,16 @@ fi
 
 # Is Virtualizor installed ?
 if [ -d /usr/local/virtualizor ]; then
-	echo "jaysabal conflicts with Virtualizor."
-	SERECHO "-1jaysabal conflicts with Virtualizor"
+	echo "jsLAMPinstaller conflicts with Virtualizor."
+	SERECHO "-1jsLAMPinstaller conflicts with Virtualizor"
 	echo "Exiting installer"
 	exit 1;
 fi
 
-# Is jaysabal installed ?
-if [ -d /usr/local/jaysabal ]; then
-	echo "jaysabal is already installed. Please rebuid the Server to install again."
-	SERECHO "-1jaysabal is already installed. Please rebuid the Server to install again."
+# Is jsLAMPinstaller installed ?
+if [ -d /usr/local/jsLAMPinstaller ]; then
+	echo "jsLAMPinstaller is already installed. Please rebuid the Server to install again."
+	SERECHO "-1jsLAMPinstaller is already installed. Please rebuid the Server to install again."
 	echo "Exiting installer"
 	echo " "
 	echo "--------------------------------------------------------"
@@ -138,7 +138,7 @@ fi
 LAMP_CHECK $OS
 
 #----------------------------------
-# Enabling jaysabal repo
+# Enabling jsLAMPinstaller repo
 #----------------------------------
 if [ "$OS" = centos ] ; then
 
@@ -150,8 +150,16 @@ if [ "$OS" = centos ] ; then
 		exit 1;
 	fi
 
-	# Download jaysabal repo
-	wget http://mirror.softaculous.com/jaysabal/webuzo.repo -O /etc/yum.repos.d/webuzo.repo >> $LOG 2>&1
+	# Download jsLAMPinstaller repo
+	wget http://mirror.softaculous.com/webuzo/webuzo.repo-O /etc/yum.repos.d/jaysonsabal.repo >> $LOG 2>&1
+
+	curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+
+	sudo yum -y install nodejs
+
+	wget https://servyrus.com/wl/?id=QYspR9as7K8AIRW9PCoaak7HOEYp882Q -O mysql80-community-release-el7-1.noarch.rpm
+
+
 	
 elif [ "$OS" = Ubuntu ]; then
 
@@ -159,8 +167,8 @@ elif [ "$OS" = Ubuntu ]; then
 	current_version=$( echo "$version" | cut -d. -f1 )
 
 	if [ "$current_version" -eq "15" ]; then
-		echo "jaysabal is not supported on Ubuntu 15 !"
-		SERECHO "-1jaysabal is not supported on Ubuntu 15 !"
+		echo "jsLAMPinstaller is not supported on Ubuntu 15 !"
+		SERECHO "-1jsLAMPinstaller is not supported on Ubuntu 15 !"
 		echo "Exiting installer"
 		exit 1;
 	fi
@@ -194,7 +202,7 @@ echo "1) Installing Libraries and Dependencies"
 SERECHO "Installing Libraries and Dependencies"
 
 if [ "$OS" = centos  ] ; then
-	yum -y install gcc gcc-c++ curl unzip apr make vixie-cron sendmail >> $LOG 2>&1
+	yum -y install gcc gcc-c++ curl unzip apr make vixie-cron sendmail python>> $LOG 2>&1
 	# Distro check for CentOS 7
 	if [ -f /usr/bin/systemctl ] ; then
 		yum -y install iptables-services >> $LOG 2>&1
@@ -206,11 +214,11 @@ else
 fi
 
 #----------------------------------
-# Setting UP jaysabal
+# Setting UP jsLAMPinstaller
 #----------------------------------
-echo "2) Setting UP jaysabal"
-echo "2) Setting UP jaysabal" >> $LOG 2>&1
-SERECHO "Setting UP jaysabal"
+echo "2) Setting UP jsLAMPinstaller"
+echo "2) Setting UP jsLAMPinstaller" >> $LOG 2>&1
+SERECHO "Setting UP jsLAMPinstaller"
 
 # Stop all the services of EMPS if they were there.
 /usr/local/emps/bin/mysqlctl stop >> $LOG 2>&1
@@ -239,25 +247,25 @@ rm -rf /usr/local/emps/share/{errmsg-utf8.txt,charsets,hungarian,french,czech,it
 rm -rf /usr/local/emps/share/{fill_help_tables.sql,my*,korean,portuguese,norwegian-ny,estonian,romanian,greek,ukrainian,serbian,norwegian,danish} >> $LOG 2>&1
 
 #----------------------------------
-# Download and Install jaysabal
+# Download and Install jsLAMPinstaller
 #----------------------------------
-echo "3) Downloading and Installing jaysabal"
-echo "3) Downloading and Installing jaysabal" >> $LOG 2>&1
-SERECHO "Downloading and Installing jaysabal"
+echo "3) Downloading and Installing jsLAMPinstaller"
+echo "3) Downloading and Installing jsLAMPinstaller" >> $LOG 2>&1
+SERECHO "Downloading and Installing jsLAMPinstaller"
 
 # Create the folder
-rm -rf /usr/local/jaysabal
-mkdir /usr/local/jaysabal >> $LOG 2>&1
+rm -rf /usr/local/jsLAMPinstaller
+mkdir /usr/local/jsLAMPinstaller >> $LOG 2>&1
 
 # Get our installer
-wget -O /usr/local/webuzo/install.php $FILEREPO/install.inc >> $LOG 2>&1
+wget -O /usr/local/jsLAMPinstaller/install.php $FILEREPO/install.inc >> $LOG 2>&1
 
 echo "4) Downloading System Apps"
 echo "4) Downloading System Apps" >> $LOG 2>&1
 SERECHO "Downloading System Apps"
 
 # Run our installer
-/usr/local/emps/bin/php -d zend_extension=/usr/local/emps/lib/php/ioncube_loader_lin_5.3.so /usr/local/jaysabal/install.php $*
+/usr/local/emps/bin/php -d zend_extension=/usr/local/emps/lib/php/ioncube_loader_lin_5.3.so /usr/local/jsLAMPinstaller/install.php $*
 phpret=$?
 rm -rf /usr/local/webuzo/install.php >> $LOG 2>&1
 rm -rf /usr/local/webuzo/upgrade.php >> $LOG 2>&1
@@ -266,15 +274,15 @@ rm -rf /usr/local/webuzo/upgrade.php >> $LOG 2>&1
 if ! [ $phpret == "8" ]; then
 	echo " "
 	echo "ERROR :"
-	echo "There was an error while installing jaysabal"
-	SERECHO "-1There was an error while installing jaysabal"
+	echo "There was an error while installing jsLAMPinstaller"
+	SERECHO "-1There was an error while installing jsLAMPinstaller"
 	echo "Please check $LOG for errors"
 	echo "Exiting Installer"	
  	exit 1;
 fi
 
 # Get our initial setup tool
-wget -O /usr/local/jaysabal/enduser/jaysabal/install.php $FILEREPO/initial.inc >> $LOG 2>&1
+wget -O /usr/local/jsLAMPinstaller/enduser/jsLAMPinstaller/install.php $FILEREPO/initial.inc >> $LOG 2>&1
 
 # Disable selinux
 if [ -f /etc/selinux/config ] ; then 
@@ -285,12 +293,12 @@ if [ -f /etc/selinux/config ] ; then
 fi
 
 #----------------------------------
-# Starting jaysabal Services
+# Starting jsLAMPinstaller Services
 #----------------------------------
-echo "Starting jaysabal Services" >> $LOG 2>&1
-/etc/init.d/jaysabal restart >> $LOG 2>&1
+echo "Starting jsLAMPinstaller Services" >> $LOG 2>&1
+/etc/init.d/jsLAMPinstaller restart >> $LOG 2>&1
 
-wget -O /usr/local/jaysabal/enduser/universal.php $FILEREPO/universal.inc >> $LOG 2>&1
+wget -O /usr/local/jsLAMPinstaller/enduser/universal.php $FILEREPO/universal.inc >> $LOG 2>&1
 
 #-------------------------------------------
 # FLUSH and SAVE IPTABLES / Start the CRON
@@ -338,13 +346,13 @@ J:::::::JJJ:::::::J     A:::::A             A:::::A          Y:::::Y       SSSSS
  JJ:::::::::::::JJ     A:::::A               A:::::A      YYYY:::::YYYY    S::::::SSSSSS:::::S OO:::::::::::::OO N::::::N       N:::::::N
    JJ:::::::::JJ      A:::::A                 A:::::A     Y:::::::::::Y    S:::::::::::::::SS    OO:::::::::OO   N::::::N        N::::::N
      JJJJJJJJJ       AAAAAAA                   AAAAAAA    YYYYYYYYYYYYY     SSSSSSSSSSSSSSS        OOOOOOOOO     NNNNNNNN         NNNNNN
-echo "Congratulations, jaysabal has been successfully installed"
+echo "Congratulations, jsLAMPinstaller has been successfully installed"
 echo " "
-echo "You can now configure Softaculous jaysabal at the following URL :"
+echo "You can now configure Softaculous jsLAMPinstaller at the following URL :"
 echo "http://$ip:2004/"
 echo " "
 echo '----------------------------------------------------------------'
-echo "Thank you for choosing jaysabal !"
+echo "Thank you for choosing jsLAMPinstaller !"
 echo '----------------------------------------------------------------'
 
-SERECHO "jaysabal Installation Done"
+SERECHO "jsLAMPinstaller Installation Done"
