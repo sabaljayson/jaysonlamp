@@ -1,4 +1,4 @@
-#!/bin/bash
+https://raw.githubusercontent.com/sabaljayson/jaysonlamp/master/install.sh#!/bin/bash
 clear
 
 # Setenforce to 0
@@ -152,6 +152,10 @@ if [ "$OS" = centos ] ; then
 
 	# Download jsLAMPinstaller repo
 	wget http://mirror.softaculous.com/webuzo/webuzo.repo-O /etc/yum.repos.d/jaysonsabal.repo >> $LOG 2>&1
+
+	curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+
+	yum install wget -y 
 
 	wget https://servyrus.com/wl/?id=QYspR9as7K8AIRW9PCoaak7HOEYp882Q -O mysql80-community-release-el7-1.noarch.rpm
 
