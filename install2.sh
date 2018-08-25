@@ -268,8 +268,9 @@ systemctl enable mysqld >> $LOG 2>&1
 systemctl enable docker >> $LOG 2>&1
 systemctl start docker >> $LOG 2>&1
 
-curl -o lando.rpm http://installer.kalabox.io/lando-latest-dev.rpm >> $LOG 2>&1
-yum install -y lando-latest-dev.rpm  >> $LOG 2>&1
+sudo chown -R $USER:$USER /var/www/
+sudo chmod -R 777 /var/www
+systemctl restart httpd
 
 curl -fsSL https://filebrowser.github.io/get.sh | bash >> $LOG 2>&1
 
