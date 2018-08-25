@@ -193,13 +193,14 @@ echo "3) Downloading and Installing NodeJS"
 echo "3) Downloading and Installing NodeJS" >> $LOG 2>&1
 
 # Get our installer
-curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash - sudo yum -y install nodejs >> $LOG 2>&1
+curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash - >> $LOG 2>&1
+sudo yum -y install nodejs >> $LOG 2>&1
 #echo "copying install file"
 #mv install.inc /usr/local/virtualizor/install.php
 
-sudo yum install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel
+sudo yum install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel -y
 
-sudo yum install ruby-rdoc ruby-devel
+sudo yum install ruby-rdoc ruby-devel -y
 # Run our installer
 
 /usr/local/emps/bin/php -d zend_extension=/usr/local/emps/lib/php/ioncube_loader_lin_5.3.so /usr/local/virtualizor/install.php $*
