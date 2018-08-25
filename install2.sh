@@ -141,7 +141,7 @@ if [ "$OS" = redhat  ] ; then
 	yum -y install mod_ssl >> $LOG 2>&1
 	yum -y groupinstall "development tools" >> $LOG 2>&1
 	yum -y install java-1.8.0-openjdk-devel >> $LOG 2>&1
-	yum -y install php php-mysql php-devel php-gd php-pecl-memcache php-pspell php-snmp php-xmlrpc php-xml
+	yum -y install php php-mysql php-devel php-gd php-pecl-memcache php-pspell php-snmp php-xmlrpc php-xml php-mbstring
 	curl -o apache-maven-3.5.4-bin.tar.gz http://www-eu.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
 	tar xvf apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
 	mv apache-maven-3.5.4  /usr/local/apache-maven >> $LOG 2>&1
