@@ -198,22 +198,9 @@ sudo yum -y install nodejs >> $LOG 2>&1
 #echo "copying install file"
 #mv install.inc /usr/local/virtualizor/install.php
 
-sudo yum install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel -y
+sudo yum install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel -y >> $LOG 2>&1
 
-sudo yum install ruby-rdoc ruby-devel -y
-# Run our installer
-
-
-
-# Was there an error
-if ! [ $phpret == "8" ]; then
-	echo " "
-	echo "ERROR :"
-	echo "There was an error while installing JaysonLAMP INstaller"
-	echo "Please check /root/virtualizor.log for errors"
-	echo "Exiting Installer"	
- 	exit 1;
-fi
+sudo yum install ruby-rdoc ruby-devel -y >> $LOG 2>&1
 
 #----------------------------------
 # Starting LAMP Services
