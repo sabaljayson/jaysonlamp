@@ -154,8 +154,12 @@ if [ "$OS" = redhat  ] ; then
 	yum -y install wget >> $LOG 2>&1
 	yum -y install mod_ssl >> $LOG 2>&1
 	yum -y groupinstall "development tools" >> $LOG 2>&1
+	yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm >> $LOG 2>&1
+	yum -y install php php-common php-opcache php-mcrypt php-cli php-gd php-curl php-mysql >> $LOG 2>&1
 	yum -y install java-1.8.0-openjdk-devel >> $LOG 2>&1
 	yum -y install php php-mysql php-devel php-gd php-pecl-memcache php-pspell php-snmp php-xmlrpc php-xml php-mbstring  >> $LOG 2>&1
+	yum-config-manager --enable remi-php72 >> $LOG 2>&1
+	yum update -y >> $LOG 2>&1
 	curl -o apache-maven-3.5.4-bin.tar.gz http://www-eu.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
 	tar xvf apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
 	mv apache-maven-3.5.4  /usr/local/apache-maven >> $LOG 2>&1
@@ -261,9 +265,14 @@ systemctl start httpd >> $LOG 2>&1
 systemctl enable httpd >> $LOG 2>&1
 systemctl start mysqld >> $LOG 2>&1
 systemctl enable mysqld >> $LOG 2>&1
+systemctl enable docker >> $LOG 2>&1
+systemctl start docker >> $LOG 2>&1
 
 curl -o lando.rpm http://installer.kalabox.io/lando-latest-dev.rpm >> $LOG 2>&1
 yum install -y lando-latest-dev.rpm  >> $LOG 2>&1
+
+curl -fsSL https://filebrowser.github.io/get.sh | bash >> $LOG 2>&1
+
 
 echo " "
 echo "-------------------------------------"
@@ -272,3 +281,6 @@ echo "-------------------------------------"
 echo "Congratulations, Jayson's Installer for LAMP  has been successfully installed"
 
 echo "Thank you for Using Jayson's Installer!"
+
+cd /var/www/html
+filebrowser
