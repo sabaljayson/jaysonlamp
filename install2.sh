@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 clear
 
 setenforce 0 >> /dev/null 2>&1
@@ -9,6 +9,20 @@ setenforce 0 >> /dev/null 2>&1
 
 FILEREPO=http://files.virtualizor.com
 LOG=/root/virtualizor.log
+
+#----------------------------------
+# Detecting the Architecture
+#----------------------------------
+if ([ `uname -i` == x86_64 ] || [ `uname -m` == x86_64 ]); then
+	ARCH=64
+else
+	ARCH=32
+fi
+
+echo "-----------------------------------------------"
+echo " Welcome to Jayson Sabal's LAMP Installer"
+echo "-----------------------------------------------"
+echo " "
 
 #----------------------------------
 # Detecting the Architecture
