@@ -135,6 +135,24 @@ if [ "$OS" = redhat  ] ; then
 	yum -y --enablerepo=base --skip-broken install e4fsprogs sendmail gcc gcc-c++ openssl unzip apr make vixie-cron crontabs fuse kpartx iputils >> $LOG 2>&1
 	yum -y --enablerepo=base --skip-broken install postfix >> $LOG 2>&1
 	yum -y --enablerepo=updates update e2fsprogs >> $LOG 2>&1
+	yum -y install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel wget >> $LOG 2>&1
+	yum -y install ruby-rdoc ruby-devel >> $LOG 2>&1
+	yum -y install wget
+	yum -y groupinstall "development tools"
+	yum install -y java-1.8.0-openjdk-devel
+	curl -o apache-maven-3.5.4-bin.tar.gz http://www-eu.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz
+	tar xvf apache-maven-3.5.4-bin.tar.gz
+	mv apache-maven-3.5.4  /usr/local/apache-maven
+	echo 'export M2_HOME=/usr/local/apache-maven' >> ~/.bashrc
+	echo 'export M2=$M2_HOME/bin' >> ~/.bashrc
+	echo 'export PATH=$M2:$PATH' >> ~/.bashrc
+	source ~/.bashrc
+	
+	gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+	curl -fsSL https://get.docker.com/ | sh
+	curl -sSL https://get.rvm.io | bash -s stable --ruby 
+	usermod -a -G rvm `whoami`
+
 elif [ "$OS" = Ubuntu  ] ; then
 	
 	if [ "$OS_ACTUAL" = Ubuntu  ] ; then
@@ -187,7 +205,7 @@ tar -xvzf /usr/local/virtualizor/EMPS.tar.gz -C /usr/local/emps >> $LOG 2>&1
 rm -rf /usr/local/virtualizor/EMPS.tar.gz >> $LOG 2>&1
 
 #----------------------------------
-# Download and Install Virtualizor
+# Download and Installing  Other Development
 #----------------------------------
 echo "3) Downloading and Installing NodeJS"
 echo "3) Downloading and Installing NodeJS" >> $LOG 2>&1
@@ -198,21 +216,20 @@ sudo yum -y install nodejs >> $LOG 2>&1
 #echo "copying install file"
 #mv install.inc /usr/local/virtualizor/install.php
 
-sudo yum install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel -y >> $LOG 2>&1
 
-sudo yum install ruby-rdoc ruby-devel -y >> $LOG 2>&1
 
 #----------------------------------
 # Starting LAMP Services
 #----------------------------------
 echo "Starting LAMP Services" >> $LOG 2>&1
 
-/etc/init.d/httpd restart >> $LOG 2>&1
-/etc/init.d/httpd mysqld >> $LOG 2>&1
+systemctl start httpd >> $LOG 2>&1
+systemctl enable httpd >> $LOG 2>&1
+systemctl start mysqld >> $LOG 2>&1
+systemctl enable mysqld >> $LOG 2>&1
 
-wget -O /tmp/ip.php http://softaculous.com/ip.php >> $LOG 2>&1 
-ip=$(cat /tmp/ip.php)
-rm -rf /tmp/ip.php
+curl -o lando.rpm http://installer.kalabox.io/lando-latest-dev.rpm >> $LOG 2>&1
+yum install -y lando-latest-dev.rpm  >> $LOG 2>&1
 
 echo " "
 echo "-------------------------------------"
