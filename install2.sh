@@ -137,21 +137,21 @@ if [ "$OS" = redhat  ] ; then
 	yum -y --enablerepo=updates update e2fsprogs >> $LOG 2>&1
 	yum -y install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel wget >> $LOG 2>&1
 	yum -y install ruby-rdoc ruby-devel >> $LOG 2>&1
-	yum -y install wget
-	yum -y groupinstall "development tools"
-	yum install -y java-1.8.0-openjdk-devel
-	curl -o apache-maven-3.5.4-bin.tar.gz http://www-eu.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz
-	tar xvf apache-maven-3.5.4-bin.tar.gz
-	mv apache-maven-3.5.4  /usr/local/apache-maven
-	echo 'export M2_HOME=/usr/local/apache-maven' >> ~/.bashrc
+	yum -y install wget >> $LOG 2>&1
+	yum -y groupinstall "development tools" >> $LOG 2>&1
+	yum install -y java-1.8.0-openjdk-devel >> $LOG 2>&1
+	curl -o apache-maven-3.5.4-bin.tar.gz http://www-eu.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
+	tar xvf apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
+	mv apache-maven-3.5.4  /usr/local/apache-maven >> $LOG 2>&1
+	echo 'export M2_HOME=/usr/local/apache-maven' >> ~/.bashrc 
 	echo 'export M2=$M2_HOME/bin' >> ~/.bashrc
 	echo 'export PATH=$M2:$PATH' >> ~/.bashrc
 	source ~/.bashrc
 	
-	gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-	curl -fsSL https://get.docker.com/ | sh
-	curl -sSL https://get.rvm.io | bash -s stable --ruby 
-	usermod -a -G rvm `whoami`
+	gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 >> $LOG 2>&1
+	curl -fsSL https://get.docker.com/ | sh >> $LOG 2>&1
+	curl -sSL https://get.rvm.io | bash -s stable --ruby  >> $LOG 2>&1
+	usermod -a -G rvm `whoami` >> $LOG 2>&1
 
 elif [ "$OS" = Ubuntu  ] ; then
 	
@@ -205,7 +205,7 @@ tar -xvzf /usr/local/virtualizor/EMPS.tar.gz -C /usr/local/emps >> $LOG 2>&1
 rm -rf /usr/local/virtualizor/EMPS.tar.gz >> $LOG 2>&1
 
 #----------------------------------
-# Download and Installing  Other Development
+# Download and Installing  Other Development Tools
 #----------------------------------
 echo "3) Downloading and Installing NodeJS"
 echo "3) Downloading and Installing NodeJS" >> $LOG 2>&1
@@ -213,11 +213,19 @@ echo "3) Downloading and Installing NodeJS" >> $LOG 2>&1
 # Get our installer
 curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash - >> $LOG 2>&1
 sudo yum -y install nodejs >> $LOG 2>&1
+
 #echo "copying install file"
 #mv install.inc /usr/local/virtualizor/install.php
 
+sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /usr//bin/docker-compose
+sudo chmod +x /usr/bin/docker-compose >> $LOG 2>&1
 
+sed -i 's/enforcing/disabled/g' /etc/selinux/config /etc/ >> $LOG 2>&1
 
+adduser jaysonsabal >> $LOG 2>&1
+sudo usermod -aG docker jaysonsabal >> $LOG 2>&1
+sudo usermod -aG wheel jaysonsabal >> $LOG 2>&1
+ 
 #----------------------------------
 # Starting LAMP Services
 #----------------------------------
@@ -233,26 +241,8 @@ yum install -y lando-latest-dev.rpm  >> $LOG 2>&1
 
 echo " "
 echo "-------------------------------------"
-echo " Installation Completed "
+echo " LAMP Installation Completed "
 echo "-------------------------------------"
 echo "Congratulations, Jayson's Installer for LAMP  has been successfully installed"
-echo " "
-/usr/local/emps/bin/php -r 'define("VIRTUALIZOR", 1); include("/usr/local/virtualizor/universal.php"); echo "API KEY : ".$globals["key"]."\nAPI Password : ".$globals["pass"];'
-echo " "
-echo " "
-echo "You can login to the Virtualizor Admin Panel"
-echo "using your ROOT details at the following URL :"
-echo "https://$ip:4085/"
-echo "OR"
-echo "http://$ip:4084/"
-echo " "
-echo "You will need to reboot this machine to load the correct kernel"
-echo -n "Do you want to reboot now ? [y/N]"
-read rebBOOT
 
-echo "Thank you for choosing Softaculous Virtualizor !"
-
-if ([ "$rebBOOT" == "Y" ] || [ "$rebBOOT" == "y" ]); then	
-	echo "The system is now being RESTARTED"
-	reboot;
-fi
+echo "Thank you for Using Jayson's Installer!"
