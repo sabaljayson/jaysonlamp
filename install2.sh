@@ -146,7 +146,7 @@ if [ "$OS" = redhat  ] ; then
 	tar xvf apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
 	mv apache-maven-3.5.4  /usr/local/apache-maven >> $LOG 2>&1
 	curl -sS https://getcomposer.org/installer | php  >> $LOG 2>&1
-	mv composer.phar /usr/local/bin/composer  >> $LOG 2>&1
+	mv composer.phar /usr/bin/composer  >> $LOG 2>&1
 	curl -o epel-release-latest-7.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm  >> $LOG 2>&1
 	curl -o remi-release-7.rpm http://rpms.remirepo.net/enterprise/remi-release-7.rpm  >> $LOG 2>&1
 	rpm -Uvh remi-release-7.rpm epel-release-latest-7.noarch.rpm  >> $LOG 2>&1
