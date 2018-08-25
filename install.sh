@@ -203,8 +203,7 @@ sudo yum install gcc g++ make automake autoconf curl-devel openssl-devel zlib-de
 sudo yum install ruby-rdoc ruby-devel -y
 # Run our installer
 
-/usr/local/emps/bin/php -d zend_extension=/usr/local/emps/lib/php/ioncube_loader_lin_5.3.so /usr/local/virtualizor/install.php $*
-phpret=$?
+
 
 rm -rf /usr/local/virtualizor/install.php >> $LOG 2>&1
 rm -rf /usr/local/virtualizor/upgrade.php >> $LOG 2>&1
