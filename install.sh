@@ -205,9 +205,6 @@ sudo yum install ruby-rdoc ruby-devel -y
 
 
 
-rm -rf /usr/local/virtualizor/install.php >> $LOG 2>&1
-rm -rf /usr/local/virtualizor/upgrade.php >> $LOG 2>&1
-
 # Was there an error
 if ! [ $phpret == "8" ]; then
 	echo " "
