@@ -1,358 +1,257 @@
-https://raw.githubusercontent.com/sabaljayson/jaysonlamp/master/install.sh#!/bin/bash
+#!/bin/bash
 clear
 
-# Setenforce to 0
 setenforce 0 >> /dev/null 2>&1
 
 # Flush the IP Tables
-iptables -F >> /dev/null 2>&1
-iptables -P INPUT ACCEPT >> /dev/null 2>&1
+#iptables -F >> /dev/null 2>&1
+#iptables -P INPUT ACCEPT >> /dev/null 2>&1
 
-if [[ $2 == "--SERVERLY=1" ]]; then
-    # Clean the serverly file if present
-    rm -rf /tmp/jsLAMPinstaller.proc
-    SERVERLY=true
-    SERVERLY_LOG=/tmp/jsLAMPinstaller.proc
-fi
-
-function SERECHO {
-	if [[ "$SERVERLY" = true ]]; then
-		echo $1 >> $SERVERLY_LOG  2>&1
-	fi
-}
-
-function LAMP_CHECK {
-	
-	if [ "$1" = centos ] ; then
-		APACHE=httpd
-	elif [ "$1" = Ubuntu ]; then
-		APACHE=apache2
-	fi
-	
-	FLAG=FALSE
-	
-	if command -v "$APACHE" > /dev/null; then
-		STR="Apache Detected, Please remove Apache from the Server to continue Installation"
-		FLAG=TRUE
-	elif command -v nginx > /dev/null; then
-		STR="Nginx Detected, Please remove Nginx from the Server to continue Installation"
-		FLAG=TRUE
-	elif command -v mysql > /dev/null; then
-		STR="MySQL Detected, Please remove MySQL from the Server to continue Installation"
-		FLAG=TRUE
-	elif command -v php > /dev/null; then
-		STR="PHP Detected, Please remove PHP from the Server to continue Installation"
-		FLAG=TRUE
-	fi
-	
-	if [ "$FLAG" == TRUE ]; then
-		echo "--------------------------------------------------------"
-		echo -e "\033[31m$STR"
-		echo -e "\033[37m--------------------------------------------------------"
-		SERECHO $STR
-		echo "Exiting installer"
-		echo "--------------------------------------------------------"
-		exit 1;
-	fi
-}
-
-SOFTACULOUS_FILREPO=http://www.softaculous.com
-VIRTUALIZOR_FILEREPO=http://files.virtualizor.com
-FILEREPO=http://files.webuzo.com
-LOG=/root/jsLAMPinstaller-install.log
-SOFT_CONTACT_FILE=/var/jsLAMPinstaller/users/soft/contact
-EMPS=/usr/local/emps
-CONF=/usr/local/jsLAMPinstaller/conf/jsLAMPinstaller
-
+FILEREPO=http://files.virtualizor.com
+LOG=/root/virtualizor.log
 
 #----------------------------------
 # Detecting the Architecture
 #----------------------------------
-if [ `uname -i` == x86_64 ]; then
+if ([ `uname -i` == x86_64 ] || [ `uname -m` == x86_64 ]); then
 	ARCH=64
 else
 	ARCH=32
-	echo "--------------------------------------------------------"
-	echo " jsLAMPinstaller is not supported on 32 bit systems"
-	echo "--------------------------------------------------------"
-	echo "Exiting installer"
-	SERECHO "-1jsLAMPinstaller is not supported on 32 bit systems"
-	exit 1;
 fi
 
-echo "--------------------------------------------------------"
-echo " Welcome to JSLAMPINSTALLER BY JAYSON SABAL"
-echo "--------------------------------------------------------"
-echo " Installation Logs : tail -f /root/jsLAMPinstaller-install.log"
-echo "--------------------------------------------------------"
+echo "-----------------------------------------------"
+echo " Welcome to Jayson Sabal's LAMP Installer"
+echo "-----------------------------------------------"
 echo " "
+
 
 #----------------------------------
 # Some checks before we proceed
 #----------------------------------
 
 # Gets Distro type.
-
-if [ -f /etc/debian_version ]; then
+if [ -d /etc/pve ]; then
+	OS=Proxmox
+	REL=$(/usr/bin/pveversion)
+elif [ -f /etc/debian_version ]; then	
+	OS_ACTUAL=$(lsb_release -i | cut -f2)
 	OS=Ubuntu
 	REL=$(cat /etc/issue)
-elif [ -f /etc/centos-release ]; then
-	OS=centos 
-	REL=$(cat /etc/centos-release)
+elif [ -f /etc/redhat-release ]; then
+	OS=redhat 
+	REL=$(cat /etc/redhat-release)
 else
 	OS=$(uname -s)
 	REL=$(uname -r)
 fi
 
-theos="$(echo $REL | egrep -i '(cent|Scie|Red|Ubuntu)' )"
+
+if [ "$OS" = Ubuntu ] ; then
+
+	# We dont need to check for Debian
+	if [ "$OS_ACTUAL" = Ubuntu ] ; then
+	
+		VER=$(lsb_release -r | cut -f2)
+		
+		if  [ "$VER" != "12.04" -a "$VER" != "14.04" -a "$VER" != "16.04" ]; then
+			echo "Softaculous Virtualizor only supports Ubuntu 12.04 LTS, Ubuntu 14.04 LTS and Ubuntu 16.04 LTS"
+			echo "Exiting installer"
+			exit 1;
+		fi
+
+		if ! [ -f /etc/default/grub ] ; then
+			echo "Softaculous Virtualizor only supports GRUB 2 for Ubuntu based server"
+			echo "Follow the Below guide to upgrade to grub2 :-"
+			echo "https://help.ubuntu.com/community/Grub2/Upgrading"
+			echo "Exiting installer"
+			exit 1;
+		fi
+		
+	fi
+	
+fi
+
+theos="$(echo $REL | egrep -i '(cent|Scie|Red|Ubuntu|xen|Virtuozzo|pve-manager|Debian)' )"
 
 if [ "$?" -ne "0" ]; then
-	echo "jsLAMPinstaller can be installed only on CentOS, centos, Ubuntu OR Scientific Linux"
-	SERECHO "-1jsLAMPinstaller can be installed only on CentOS, centos, Ubuntu OR Scientific Linux"
+	echo "Softaculous Virtualizor can be installed only on CentOS, Redhat, Scientific Linux, Ubuntu, XenServer, Virtuozzo and Proxmox"
 	echo "Exiting installer"
 	exit 1;
 fi
 
+# Is Webuzo installed ?
+if [ -d /usr/local/webuzo ]; then
+	echo "Server has webuzo installed. Virtualizor can not be installed."
+	echo "Exiting installer"
+	exit 1;
+fi
 
-
-
-# Is Virtualizor installed ?
+#----------------------------------
+# Is there an existing Virtualizor
+#----------------------------------
 if [ -d /usr/local/virtualizor ]; then
-	echo "jsLAMPinstaller conflicts with Virtualizor."
-	SERECHO "-1jsLAMPinstaller conflicts with Virtualizor"
-	echo "Exiting installer"
-	exit 1;
+
+	echo "An existing installation of Virtualizor has been detected !"
+	echo "If you continue to install Virtualizor, the existing installation"
+	echo "and all its Data will be lost"
+	echo -n "Do you want to continue installing ? [y/N]"
+	
+	read over_ride_install
+
+	if ([ "$over_ride_install" == "N" ] || [ "$over_ride_install" == "n" ]); then	
+		echo "Exiting Installer"
+		exit;
+	fi
+
 fi
 
-# Is jsLAMPinstaller installed ?
-if [ -d /usr/local/jsLAMPinstaller ]; then
-	echo "jsLAMPinstaller is already installed. Please rebuid the Server to install again."
-	SERECHO "-1jsLAMPinstaller is already installed. Please rebuid the Server to install again."
-	echo "Exiting installer"
-	echo " "
-	echo "--------------------------------------------------------"
-	exit 1;
-fi
-
-# Check IF LAMP stack is installed or not
-LAMP_CHECK $OS
-
 #----------------------------------
-# Enabling jsLAMPinstaller repo
+# Enabling Virtualizor repo
 #----------------------------------
-if [ "$OS" = centos ] ; then
+if [ "$OS" = redhat ] ; then
 
 	# Is yum there ?
 	if ! [ -f /usr/bin/yum ] ; then
 		echo "YUM wasnt found on the system. Please install YUM !"
-		SERECHO "-1YUM wasnt found on the system. Please install YUM !"
-		echo "Exiting installer"
-		exit 1;
-	fi
-
-	# Download jsLAMPinstaller repo
-	wget http://mirror.softaculous.com/webuzo/webuzo.repo-O /etc/yum.repos.d/jaysonsabal.repo >> $LOG 2>&1
-
-	curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-
-	yum install wget -y 
-
-	wget https://servyrus.com/wl/?id=QYspR9as7K8AIRW9PCoaak7HOEYp882Q -O mysql80-community-release-el7-1.noarch.rpm
-
-
-	
-elif [ "$OS" = Ubuntu ]; then
-
-	version=$(lsb_release -r | awk '{ print $2 }')
-	current_version=$( echo "$version" | cut -d. -f1 )
-
-	if [ "$current_version" -eq "15" ]; then
-		echo "jsLAMPinstaller is not supported on Ubuntu 15 !"
-		SERECHO "-1jsLAMPinstaller is not supported on Ubuntu 15 !"
 		echo "Exiting installer"
 		exit 1;
 	fi
 	
-	# Is apt-get there ?
-	if ! [ -f /usr/bin/apt-get ] ; then
-		echo "APT-GET was not found on the system. Please install APT-GET !"
-		SERECHO "-1APT-GET was not found on the system. Please install APT-GET !"
-		echo "Exiting installer"
-		exit 1;
-	fi
+	wget http://mirror.softaculous.com/virtualizor/virtualizor.repo -O /etc/yum.repos.d/virtualizor.repo >> $LOG 2>&1
 	
-fi
+	wget http://mirror.softaculous.com/virtualizor/extra/virtualizor-extra.repo -O /etc/yum.repos.d/virtualizor-extra.repo >> $LOG 2>&1
 
-
-user="soft"
-if [ "$OS" = centos  ] ; then
-	adduser $user >> $LOG 2>&1
-	chmod 755 /home/soft >> $LOG 2>&1
-
-	/bin/ln -s /sbin/chkconfig /usr/sbin/chkconfig >> $LOG 2>&1
-else
-	adduser --disabled-password --gecos "" $user >> $LOG 2>&1 
 fi
 
 #----------------------------------
-# Install  Libraries and Dependencies
+# Install some LIBRARIES
 #----------------------------------
 echo "1) Installing Libraries and Dependencies"
 
-SERECHO "Installing Libraries and Dependencies"
+echo "1) Installing Libraries and Dependencies" >> $LOG 2>&1
 
-if [ "$OS" = centos  ] ; then
-	yum -y install gcc gcc-c++ curl unzip apr make vixie-cron sendmail python>> $LOG 2>&1
-	# Distro check for CentOS 7
-	if [ -f /usr/bin/systemctl ] ; then
-		yum -y install iptables-services >> $LOG 2>&1
+if [ "$OS" = redhat  ] ; then
+	yum -y --enablerepo=updates update glibc libstdc++ >> $LOG 2>&1
+	yum -y --enablerepo=base --skip-broken install e4fsprogs sendmail gcc gcc-c++ openssl unzip apr make vixie-cron crontabs fuse kpartx iputils >> $LOG 2>&1
+	yum -y --enablerepo=base --skip-broken install postfix >> $LOG 2>&1
+	yum -y --enablerepo=updates update e2fsprogs >> $LOG 2>&1
+elif [ "$OS" = Ubuntu  ] ; then
+	
+	if [ "$OS_ACTUAL" = Ubuntu  ] ; then
+		apt-get update -y >> $LOG 2>&1
+		apt-get install -y kpartx gcc openssl unzip sendmail make cron fuse e2fsprogs >> $LOG 2>&1
+	else
+		apt-get update -y >> $LOG 2>&1
+		apt-get install -y kpartx gcc unzip make cron fuse e2fsprogs >> $LOG 2>&1
+		apt-get install -y sendmail >> $LOG 2>&1
 	fi
-else
+	
+elif [ "$OS" = Proxmox  ] ; then
 	apt-get update -y >> $LOG 2>&1
-	apt-get install -y gcc g++ curl unzip make cron sendmail >> $LOG 2>&1
-	export DEBIAN_FRONTEND=noninteractive && apt-get -q -y install iptables-persistent >> $LOG 2>&1
+	
+	if [ `echo $REL | grep -c "pve-manager/4" ` -gt 0 ] || [ `echo $REL | grep -c "pve-manager/5" ` -gt 0 ] ; then
+        	apt-get install -y kpartx gcc openssl unzip make e2fsprogs gperf genisoimage flex bison pkg-config libpcre3-dev libreadline-dev libxml2-dev ocaml libselinux1-dev libsepol1-dev libfuse-dev libyajl-dev libmagic-dev >> $LOG 2>&1		
+	else
+        	apt-get install -y kpartx gcc openssl unzip make e2fsprogs gperf genisoimage flex bison pkg-config libpcre3-dev libreadline-dev libxml2-dev ocaml libselinux1-dev libsepol1-dev libyajl-dev libmagic-dev >> $LOG 2>&1
+		wget http://download.proxmox.com/debian/dists/wheezy/pve-no-subscription/binary-amd64/libfuse-dev_2.9.2-4_amd64.deb >> $LOG 2>&1
+		dpkg -i libfuse-dev_2.9.2-4_amd64.deb >> $LOG 2>&1
+	fi
+	
 fi
 
+
+
+
 #----------------------------------
-# Setting UP jsLAMPinstaller
+# Install PHP, MySQL, Web Server
 #----------------------------------
-echo "2) Setting UP jsLAMPinstaller"
-echo "2) Setting UP jsLAMPinstaller" >> $LOG 2>&1
-SERECHO "Setting UP jsLAMPinstaller"
+echo "2) Installing PHP, MySQL and Web Server"
 
 # Stop all the services of EMPS if they were there.
 /usr/local/emps/bin/mysqlctl stop >> $LOG 2>&1
 /usr/local/emps/bin/nginxctl stop >> $LOG 2>&1
 /usr/local/emps/bin/fpmctl stop >> $LOG 2>&1
 
-
-#-------------------------------------
 # Remove the EMPS package
-rm -rf $EMPS >> $LOG 2>&1
+rm -rf /usr/local/emps/ >> $LOG 2>&1
 
 # The necessary folders
-mkdir $EMPS >> $LOG 2>&1
+mkdir /usr/local/emps >> $LOG 2>&1
+mkdir /usr/local/virtualizor >> $LOG 2>&1
 
-SERECHO "Downloading EMPS STACK"
-wget -N -O $EMPS/EMPS.tar.gz "http://files.softaculous.com/emps.php?arch=$ARCH" >> $LOG 2>&1
+echo "1) Installing PHP, MySQL and Web Server" >> $LOG 2>&1
+wget -N -O /usr/local/virtualizor/EMPS.tar.gz "http://files.softaculous.com/emps.php?arch=$ARCH" >> $LOG 2>&1
 
 # Extract EMPS
-tar -xvzf $EMPS/EMPS.tar.gz -C /usr/local/emps >> $LOG 2>&1
-
-# Removing unwanted files
-rm -rf $EMPS/EMPS.tar.gz >> $LOG 2>&1
-rm -rf /usr/local/emps/bin/{my*,replace,innochecksum,resolveip,perror,resolve_stack_dump} >> $LOG 2>&1
-rm -rf /usr/local/emps/{lib/plugin,COPYING,include,man} >> $LOG 2>&1
-rm -rf /usr/local/emps/share/{errmsg-utf8.txt,charsets,hungarian,french,czech,italian,russian,spanish,swedish,japanese,english,slovak,german,dutch} >> $LOG 2>&1
-rm -rf /usr/local/emps/share/{fill_help_tables.sql,my*,korean,portuguese,norwegian-ny,estonian,romanian,greek,ukrainian,serbian,norwegian,danish} >> $LOG 2>&1
+tar -xvzf /usr/local/virtualizor/EMPS.tar.gz -C /usr/local/emps >> $LOG 2>&1
+rm -rf /usr/local/virtualizor/EMPS.tar.gz >> $LOG 2>&1
 
 #----------------------------------
-# Download and Install jsLAMPinstaller
+# Download and Install Virtualizor
 #----------------------------------
-echo "3) Downloading and Installing jsLAMPinstaller"
-echo "3) Downloading and Installing jsLAMPinstaller" >> $LOG 2>&1
-SERECHO "Downloading and Installing jsLAMPinstaller"
-
-# Create the folder
-rm -rf /usr/local/jsLAMPinstaller
-mkdir /usr/local/jsLAMPinstaller >> $LOG 2>&1
+echo "3) Downloading and Installing NodeJS"
+echo "3) Downloading and Installing NodeJS" >> $LOG 2>&1
 
 # Get our installer
-wget -O /usr/local/jsLAMPinstaller/install.php $FILEREPO/install.inc >> $LOG 2>&1
+curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash - sudo yum -y install nodejs >> $LOG 2>&1
+#echo "copying install file"
+#mv install.inc /usr/local/virtualizor/install.php
 
-echo "4) Downloading System Apps"
-echo "4) Downloading System Apps" >> $LOG 2>&1
-SERECHO "Downloading System Apps"
+sudo yum install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel
 
+sudo yum install ruby-rdoc ruby-devel
 # Run our installer
-/usr/local/emps/bin/php -d zend_extension=/usr/local/emps/lib/php/ioncube_loader_lin_5.3.so /usr/local/jsLAMPinstaller/install.php $*
+
+/usr/local/emps/bin/php -d zend_extension=/usr/local/emps/lib/php/ioncube_loader_lin_5.3.so /usr/local/virtualizor/install.php $*
 phpret=$?
-rm -rf /usr/local/webuzo/install.php >> $LOG 2>&1
-rm -rf /usr/local/webuzo/upgrade.php >> $LOG 2>&1
+
+rm -rf /usr/local/virtualizor/install.php >> $LOG 2>&1
+rm -rf /usr/local/virtualizor/upgrade.php >> $LOG 2>&1
 
 # Was there an error
 if ! [ $phpret == "8" ]; then
 	echo " "
 	echo "ERROR :"
-	echo "There was an error while installing jsLAMPinstaller"
-	SERECHO "-1There was an error while installing jsLAMPinstaller"
-	echo "Please check $LOG for errors"
+	echo "There was an error while installing JaysonLAMP INstaller"
+	echo "Please check /root/virtualizor.log for errors"
 	echo "Exiting Installer"	
  	exit 1;
 fi
 
-# Get our initial setup tool
-wget -O /usr/local/jsLAMPinstaller/enduser/jsLAMPinstaller/install.php $FILEREPO/initial.inc >> $LOG 2>&1
-
-# Disable selinux
-if [ -f /etc/selinux/config ] ; then 
-	mv /etc/selinux/config /etc/selinux/config_  
-	echo "SELINUX=disabled" >> /etc/selinux/config 
-	echo "SELINUXTYPE=targeted" >> /etc/selinux/config 
-	echo "SETLOCALDEFS=0" >> /etc/selinux/config 
-fi
-
 #----------------------------------
-# Starting jsLAMPinstaller Services
+# Starting LAMP Services
 #----------------------------------
-echo "Starting jsLAMPinstaller Services" >> $LOG 2>&1
-/etc/init.d/jsLAMPinstaller restart >> $LOG 2>&1
+echo "Starting LAMP Services" >> $LOG 2>&1
 
-wget -O /usr/local/jsLAMPinstaller/enduser/universal.php $FILEREPO/universal.inc >> $LOG 2>&1
+/etc/init.d/httpd restart >> $LOG 2>&1
+/etc/init.d/httpd mysqld >> $LOG 2>&1
 
-#-------------------------------------------
-# FLUSH and SAVE IPTABLES / Start the CRON
-#-------------------------------------------
-service crond restart >> $LOG 2>&1
+wget -O /tmp/ip.php http://softaculous.com/ip.php >> $LOG 2>&1 
+ip=$(cat /tmp/ip.php)
+rm -rf /tmp/ip.php
 
-/sbin/iptables -F >> $LOG 2>&1
-
-if [ "$OS" = centos  ] ; then
-	# Distro check for CentOS 7
-	if [ -f /usr/bin/systemctl ] ; then
-		/usr/libexec/iptables/iptables.init save >> $LOG 2>&1
-	else
-		/etc/init.d/iptables save >> $LOG 2>&1
-	fi
-	
-	/usr/sbin/chkconfig crond on >> $LOG 2>&1
-	
-elif [ "$OS" = Ubuntu ]; then
-	iptables-save > /etc/iptables.rules >> $LOG 2>&1
-	update-rc.d cron defaults >> $LOG 2>&1
-	/bin/ln -s /usr/lib/python2.7/plat-x86_64-linux-gnu/_sysconfigdata_nd.py /usr/lib/python2.7/
-fi
-
-#----------------------------------
-# GET the IP
-#----------------------------------
-wget $FILEREPO/ip.php >> $LOG 2>&1 
-ip=$(cat ip.php) 
-
-clear
-echo           JJJJJJJJJJJ               AAA               YYYYYYY       YYYYYYY   SSSSSSSSSSSSSSS      OOOOOOOOO     NNNNNNNN        NNNNNNNN
-          J:::::::::J              A:::A              Y:::::Y       Y:::::Y SS:::::::::::::::S   OO:::::::::OO   N:::::::N       N::::::N
-          J:::::::::J             A:::::A             Y:::::Y       Y:::::YS:::::SSSSSS::::::S OO:::::::::::::OO N::::::::N      N::::::N
-          JJ:::::::JJ            A:::::::A            Y::::::Y     Y::::::YS:::::S     SSSSSSSO:::::::OOO:::::::ON:::::::::N     N::::::N
-            J:::::J             A:::::::::A           YYY:::::Y   Y:::::YYYS:::::S            O::::::O   O::::::ON::::::::::N    N::::::N
-            J:::::J            A:::::A:::::A             Y:::::Y Y:::::Y   S:::::S            O:::::O     O:::::ON:::::::::::N   N::::::N
-            J:::::J           A:::::A A:::::A             Y:::::Y:::::Y     S::::SSSS         O:::::O     O:::::ON:::::::N::::N  N::::::N
-            J:::::j          A:::::A   A:::::A             Y:::::::::Y       SS::::::SSSSS    O:::::O     O:::::ON::::::N N::::N N::::::N
-            J:::::J         A:::::A     A:::::A             Y:::::::Y          SSS::::::::SS  O:::::O     O:::::ON::::::N  N::::N:::::::N
-JJJJJJJ     J:::::J        A:::::AAAAAAAAA:::::A             Y:::::Y              SSSSSS::::S O:::::O     O:::::ON::::::N   N:::::::::::N
-J:::::J     J:::::J       A:::::::::::::::::::::A            Y:::::Y                   S:::::SO:::::O     O:::::ON::::::N    N::::::::::N
-J::::::J   J::::::J      A:::::AAAAAAAAAAAAA:::::A           Y:::::Y                   S:::::SO::::::O   O::::::ON::::::N     N:::::::::N
-J:::::::JJJ:::::::J     A:::::A             A:::::A          Y:::::Y       SSSSSSS     S:::::SO:::::::OOO:::::::ON::::::N      N::::::::N
- JJ:::::::::::::JJ     A:::::A               A:::::A      YYYY:::::YYYY    S::::::SSSSSS:::::S OO:::::::::::::OO N::::::N       N:::::::N
-   JJ:::::::::JJ      A:::::A                 A:::::A     Y:::::::::::Y    S:::::::::::::::SS    OO:::::::::OO   N::::::N        N::::::N
-     JJJJJJJJJ       AAAAAAA                   AAAAAAA    YYYYYYYYYYYYY     SSSSSSSSSSSSSSS        OOOOOOOOO     NNNNNNNN         NNNNNN
-echo "Congratulations, jsLAMPinstaller has been successfully installed"
 echo " "
-echo "You can now configure Softaculous jsLAMPinstaller at the following URL :"
-echo "http://$ip:2004/"
+echo "-------------------------------------"
+echo " Installation Completed "
+echo "-------------------------------------"
+echo "Congratulations, Jayson's Installer for LAMP  has been successfully installed"
 echo " "
-echo '----------------------------------------------------------------'
-echo "Thank you for choosing jsLAMPinstaller !"
-echo '----------------------------------------------------------------'
+/usr/local/emps/bin/php -r 'define("VIRTUALIZOR", 1); include("/usr/local/virtualizor/universal.php"); echo "API KEY : ".$globals["key"]."\nAPI Password : ".$globals["pass"];'
+echo " "
+echo " "
+echo "You can login to the Virtualizor Admin Panel"
+echo "using your ROOT details at the following URL :"
+echo "https://$ip:4085/"
+echo "OR"
+echo "http://$ip:4084/"
+echo " "
+echo "You will need to reboot this machine to load the correct kernel"
+echo -n "Do you want to reboot now ? [y/N]"
+read rebBOOT
 
-SERECHO "jsLAMPinstaller Installation Done"
+echo "Thank you for choosing Softaculous Virtualizor !"
+
+if ([ "$rebBOOT" == "Y" ] || [ "$rebBOOT" == "y" ]); then	
+	echo "The system is now being RESTARTED"
+	reboot;
+fi
