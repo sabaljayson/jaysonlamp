@@ -135,14 +135,21 @@ if [ "$OS" = redhat  ] ; then
 	yum -y --enablerepo=base --skip-broken install e4fsprogs sendmail gcc gcc-c++ openssl unzip apr make vixie-cron crontabs fuse kpartx iputils >> $LOG 2>&1
 	yum -y --enablerepo=base --skip-broken install postfix >> $LOG 2>&1
 	yum -y --enablerepo=updates update e2fsprogs >> $LOG 2>&1
-	yum -y install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel wget >> $LOG 2>&1
+	yum -y install git gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel wget >> $LOG 2>&1
 	yum -y install ruby-rdoc ruby-devel >> $LOG 2>&1
 	yum -y install wget >> $LOG 2>&1
+	yum -y install mod_ssl >> $LOG 2>&1
 	yum -y groupinstall "development tools" >> $LOG 2>&1
-	yum install -y java-1.8.0-openjdk-devel >> $LOG 2>&1
+	yum -y install java-1.8.0-openjdk-devel >> $LOG 2>&1
+	yum -y install php php-mysql php-devel php-gd php-pecl-memcache php-pspell php-snmp php-xmlrpc php-xml
 	curl -o apache-maven-3.5.4-bin.tar.gz http://www-eu.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
 	tar xvf apache-maven-3.5.4-bin.tar.gz >> $LOG 2>&1
 	mv apache-maven-3.5.4  /usr/local/apache-maven >> $LOG 2>&1
+	curl -sS https://getcomposer.org/installer | php  >> $LOG 2>&1
+	mv composer.phar /usr/local/bin/composer  >> $LOG 2>&1
+	curl -o epel-release-latest-7.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm  >> $LOG 2>&1
+	curl -o remi-release-7.rpm http://rpms.remirepo.net/enterprise/remi-release-7.rpm  >> $LOG 2>&1
+	rpm -Uvh remi-release-7.rpm epel-release-latest-7.noarch.rpm  >> $LOG 2>&1
 	echo 'export M2_HOME=/usr/local/apache-maven' >> ~/.bashrc 
 	echo 'export M2=$M2_HOME/bin' >> ~/.bashrc
 	echo 'export PATH=$M2:$PATH' >> ~/.bashrc
@@ -225,7 +232,12 @@ sed -i 's/enforcing/disabled/g' /etc/selinux/config /etc/ >> $LOG 2>&1
 adduser jaysonsabal >> $LOG 2>&1
 sudo usermod -aG docker jaysonsabal >> $LOG 2>&1
 sudo usermod -aG wheel jaysonsabal >> $LOG 2>&1
- 
+
+
+cd /var/www >> $LOG 2>&1
+yum-config-manager --enable remi-php70 >> $LOG 2>&1
+yum -y update >> $LOG 2>&1
+
 #----------------------------------
 # Starting LAMP Services
 #----------------------------------
