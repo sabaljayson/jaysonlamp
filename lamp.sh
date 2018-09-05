@@ -256,11 +256,6 @@ configure_exclude(){
 		echo 'exclude=ansible1.9,mysql,mariadb,mariadb-*,Percona-XtraDB-*,Percona-*-55,Percona-*-56,Percona-*-51,Percona-*-50' >> /etc/yum.conf
 	fi
 
-}
-
-
-    
-}
 
 yum_update(){
 	print "Update system. Please wait." 1
