@@ -355,8 +355,7 @@ configure_mysql_passwords(){
         else
             ASK_USER_FOR_PASSWORD=2
             mysql_update_config=$my_temp
-        fi
-
+    
     else
         MYSQL_ROOTPW_TYPE=saved
         log_to_file "Found default client config=$MYSQL_CNF"
