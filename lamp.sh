@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-LOGS_FILE=$(mktemp /tmp/bitrix-env-XXXXX.log)
+LOGS_FILE=$(mktemp /tmp/jayson.lamp.log)
 RELEASE_FILE=/etc/redhat-release
 OS=$(awk '{print $1}' $RELEASE_FILE)
 MYSQL_CNF=$HOME/.my.cnf
@@ -11,7 +11,7 @@ POOL=0
 [[ -z $TEST_REPOSITORY ]] && TEST_REPOSITORY=0
 
 BX_NAME=$(basename $0 | sed -e "s/\.sh$//")
-if [[ $BX_NAME == "bitrix-env-crm" || $BX_NAME == "bitrix-env-crm-beta" ]]; then
+if [[ $BX_NAME == "jayson-env" || $BX_NAME == "bitrix-env-crm-beta" ]]; then
     BX_PACKAGE="bitrix-env-crm"
     BX_TYPE=crm
 else
@@ -503,7 +503,7 @@ configure_remi
 pre_php
 configure_percona
 configure_nodejs
-configure_bitrix
+
 
 # prepare for percona
 prepare_percona_install
@@ -518,18 +518,7 @@ print "Install php packages. Please wait." 1
 yum -y install php php-mysql \
     php-pecl-apcu php-pecl-zendopcache >>$LOGS_FILE 2>&1 || \
     print_e "An error occurred during installation of php-packages"
-
-if [[ $BX_PACKAGE == "bitrix-env-crm" ]]; then
-    yum -y install bx-push-server  >>$LOGS_FILE 2>&1 || \
-        print_e "An error occurred during installation of bx-push-server"
 fi
-
-print "Install $BX_PACKAGE package. Please wait." 1
-yum -y install $BX_PACKAGE >>$LOGS_FILE 2>&1 || \
-    print_e "An error occurred during installation of $BX_PACKAGE package"
-
-# upload bitrix proc
-. /opt/webdir/bin/bitrix_utils.sh || exit 1
 
 configure_mysql_passwords
 
